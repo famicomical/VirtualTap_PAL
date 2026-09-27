@@ -1,6 +1,6 @@
-# Notes: making a PAL (50 Hz, 625-line) version of the VirtualTap CPLD logic
+# Design notes: making a PAL (50 Hz) version of the VirtualTap CPLD logic
 
-Handoff notes. Written after reading `VT_vga2.v`, `VT_ntsc2.v`, both `.qsf` files, the tester firmware and the README. Nothing here has been built or tested on hardware yet. Read `CLAUDE.md` first for the architecture overview (column-major framebuffer, `HSTRETCH` read/write slots, 4-buffer scheme).
+**Historical.** Written before anything was built, as a plan for the PAL bitstream. What shipped differs: the output-side genlock described in section 3 was tried (commit c5a3582), dropped for a free-running raster (e8ccc0b), and replaced by locking the Virtual Boy to the output through the servo main sync (f24f895 and later). The current design is described in the header of `VT_pal2.v` and in `README.md` next to this file; those win wherever they disagree with this document. The timing analysis and the constants below still apply.
 
 ## 0. What "PAL" means here
 

@@ -1,4 +1,5 @@
 `timescale 1ns/1ps
+// (C) 2026 Rony Ballouz, GPLv2 as the rest of VirtualTap
 // Bench for VT_ntsc2.v / VT_pal2.v: SRAM model, VB column bursts, pixel-exact output check.
 module tb;
 parameter H0 = 540;			// first displayed HCOUNT

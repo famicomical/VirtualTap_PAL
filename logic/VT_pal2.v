@@ -1,7 +1,8 @@
 // VIRTUALTAP Rev. C CPLD logic
 // Version 2-PAL "servo master", for Max V 5M240ZT100
 // (C) 2018 Sean "furrtek" Gonsalves
-// 50Hz / 314-line progressive RGB, derived from VT_ntsc2.v / VT_pal2_freerun314.v
+// PAL "servo master" rework (C) 2026 Rony Ballouz, GPLv2 as the rest of VirtualTap
+// 50Hz / 314-line progressive RGB, derived from VT_ntsc2.v
 //
 // Output raster: free-running, rigid. Every frame is exactly 314 lines of exactly 2562 clocks
 // (64.05us): 20.11ms = 49.72Hz. No line or frame is ever trimmed, so nothing in the sync stream

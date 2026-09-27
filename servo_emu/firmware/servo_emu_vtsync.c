@@ -2,7 +2,7 @@
 // For ATTiny25, internal RC osc, CKDIV8 off
 // Fuses Ex:0xFF High:0xDF Low:0xE2 (same as servo_emu.c)
 // Part of the VirtualTap project
-// 2018 Furrtek, sync input 2026
+// (C) 2018 Sean "furrtek" Gonsalves, sync input variant (C) 2026 Rony Ballouz, GPLv2
 //
 // Difference from servo_emu.c: PB2 is an input instead of the main sync output. VirtualTap's
 // SERVO_SYNC (J1 "V_HS" pad, PAL "servo master" bitstream) is wired to the VB pin 6 net, so it

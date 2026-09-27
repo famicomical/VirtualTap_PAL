@@ -1,5 +1,7 @@
 # VirtualTap
 
+> **Fork notice.** This is a fork of [furrtek/VirtualTap](https://github.com/furrtek/VirtualTap) that adds a PAL (50 Hz) bitstream and the VirtualTap-synchronised servo emulator firmware it needs (see the last section). The board, the VGA/NTSC bitstreams, the servo emulator and the tester are furrtek's work and are unchanged. Questions about the PAL build belong in this repository's issues, not with furrtek. Everything stays under the GPLv2 in `LICENSE`.
+
 I (furrtek) do not make these anymore ! If you have questions or issues with your kit, please contact the seller.
 
 ![Virtualtap pcb picture](photo.jpg)

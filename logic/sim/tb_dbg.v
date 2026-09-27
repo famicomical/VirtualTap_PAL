@@ -1,4 +1,5 @@
 `timescale 1ns/1ps
+// (C) 2026 Rony Ballouz, GPLv2 as the rest of VirtualTap
 // Bench for VT_dbg.v: VB_CS 4.84ms high every 20.11ms (+ small jitter), VB_SHIFT strobes during
 // the burst. Checks the latched PERIOD/HIGH readouts and dumps one raster frame to dbg.ppm.
 module tb_dbg;

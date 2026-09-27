@@ -1,5 +1,5 @@
 #!/bin/sh
-# Icarus Verilog bench for the CPLD logic.
+# Icarus Verilog bench for the CPLD logic. (C) 2026 Rony Ballouz, GPLv2 as the rest of VirtualTap.
 # Usage: ./run.sh pal [DLY_ns] [NFRAMES] [CHECK_FROM] [JITNS]   |   ./run.sh ntsc
 # pal: servo-master VT_pal2.v with tb_servo.v. DLY = servo sync rise -> VB burst start (default 1024000 ns, measured on hardware,
 #      with INIT_FALL_LINE 240 the burst ends on line 52 at once; 6019900 starts ~78 lines late,

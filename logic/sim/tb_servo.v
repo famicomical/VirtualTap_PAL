@@ -1,4 +1,5 @@
 `timescale 1ns/1ps
+// (C) 2026 Rony Ballouz, GPLv2 as the rest of VirtualTap
 // Bench for the servo-master VT_pal2.v: SRAM model, a Virtual Boy model whose transfer burst
 // starts DLY ns after the servo main sync rises,
 // pixel-exact output check, rigid raster check (every line LINE clocks, every frame 314 lines),

@@ -1,4 +1,5 @@
 #!/bin/sh
+# (C) 2026 Rony Ballouz, GPLv2 as the rest of VirtualTap.
 # Flash servo_emu_vtsync_attiny45.hex and its fuses into an ATtiny45 with a TL866II+/T48 using the
 # open-source minipro tool on macOS/Linux (brew install minipro). Chip in the ZIF socket, out of the
 # emulator board. Fuses as in servo_emu.c: Ext 0xFF, High 0xDF, Low 0xE2 (CKDIV8 off, CKOUT off).
