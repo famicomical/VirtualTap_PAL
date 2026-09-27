@@ -1,6 +1,6 @@
 # Design notes: making a PAL (50 Hz) version of the VirtualTap CPLD logic
 
-**Historical.** Written before anything was built, as a plan for the PAL bitstream. What shipped differs: the output-side genlock described in section 3 was tried (commit c5a3582), dropped for a free-running raster (e8ccc0b), and replaced by locking the Virtual Boy to the output through the servo main sync (f24f895 and later). The current design is described in the header of `VT_pal2.v` and in `README.md` next to this file; those win wherever they disagree with this document. The timing analysis and the constants below still apply.
+**Historical.** Written before anything was built, as a plan for the PAL bitstream. What shipped differs: the output-side genlock described in section 3 was tried, dropped for a free-running raster, and finally replaced by locking the Virtual Boy to the output through the servo main sync. The current design is described in the header of `VT_pal2.v` and in `README.md` next to this file; those win wherever they disagree with this document. The timing analysis and the constants below still apply.
 
 ## 0. What "PAL" means here
 

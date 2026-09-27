@@ -1,15 +1,18 @@
-# VirtualTap
+# VirtualTap_PAL
 
-> **Fork notice.** This is a fork of [furrtek/VirtualTap](https://github.com/furrtek/VirtualTap) that replaces the CPLD logic with a PAL (50 Hz) bitstream and adds the VirtualTap-synchronised servo emulator firmware it needs (see the last section). The original VGA and NTSC bitstreams are not carried here; get them from upstream. The board, the servo emulator and the tester are furrtek's work and are unchanged. Questions about the PAL build belong in this repository's issues, not with furrtek. Everything stays under the GPLv2 in `LICENSE`.
+A fork of [furrtek/VirtualTap](https://github.com/furrtek/VirtualTap) that replaces the CPLD logic with a PAL (50 Hz) bitstream and adds the VirtualTap-synchronised servo emulator firmware it needs.
 
-I (furrtek) do not make these anymore ! If you have questions or issues with your kit, please contact the seller.
+* **The servo emulator is required for this build**, not optional as upstream: the mechanical mirror servo board must be replaced by it (see the last two sections).
+* The original VGA and NTSC bitstreams are not carried here; get them from upstream.
+* The board, the servo emulator and the tester are furrtek's work and are unchanged. furrtek no longer makes or sells these boards; questions about the PAL build belong in this repository's issues, not with furrtek.
+* Everything stays under the GPLv2 in `LICENSE`.
 
 ![Virtualtap pcb picture](photo.jpg)
 
 * `doc`: Installation manuals.
 * `logic`: Verilog sources, pin assignments and bitstream file for the PAL (50 Hz) version.
 * `pcb`: Schematics, BOM and GERBER files.
-* `servo_emu`: AVR firmware and hookup guide for servo emulator, plus the VirtualTap-synchronised variant used by the PAL bitstream.
+* `servo_emu`: AVR firmware and hookup guide for the servo emulator, plus the VirtualTap-synchronised variant that the PAL bitstream requires.
 
 ## What it is
 A small mod board made to be plugged inside a Nintendo Virtualboy unit to make it output standard RGB video (PAL 50 Hz in this fork; VGA and NTSC upstream).
@@ -23,7 +26,7 @@ The signals sent to one of the Virtualboy's displays are tapped and level-transl
 
 ## Servo emulator
 
-This is only useful if you wish to consolize your VirtualBoy and get rid of the mechanical parts to make it smaller.
+**Required for the PAL bitstream in this fork.** Upstream, the emulator is only for consolizing a Virtual Boy and removing the mechanical parts; here the CPLD generates the mirror servo's main sync itself and the emulator is what turns that into the signals the Virtual Boy expects, so the original servo board cannot stay. The PAL build does not work with the mechanical servo board.
 
 The servo emulator makes the VirtualBoy think the eye displays are still there and working properly. Without it, the games won't start.
 
@@ -35,4 +38,4 @@ Porting the code to the Arduino Nano or other small AVR boards should be pretty 
 
 furrtek's VGA and NTSC bitstreams run their output free of the Virtual Boy's frame timing, so a frame is dropped or repeated now and then and the single-buffer mode can tear. The PAL bitstream (`logic/VT_PAL2.pof`, 50 Hz, 314-line progressive RGB) keeps its raster rigid too, but turns the relationship around: VirtualTap generates the mirror servo's 50 Hz main sync from its own crystal and nudges it until the Virtual Boy's column transfer lands inside the output's vertical blanking. The single framebuffer is then never read while it is written: no tear, no dropped or repeated frames, no jitter, and a constant 3.6 ms from the end of the transfer to the first displayed row.
 
-This needs the servo emulator on the Virtual Boy, running `servo_emu/firmware/servo_emu_vtsync.c` instead of `servo_emu.c` (its main sync pin becomes an input), and one extra wire from VirtualTap's `V_HS` pad (J1 pin 8) to the emulator's PB2 / Virtual Boy servo connector pin 6. Everything else is unchanged. Details, calibration for another unit and the simulation bench are in `logic/README.md`.
+This requires the servo emulator in place of the Virtual Boy's mechanical servo board, running `servo_emu/firmware/servo_emu_vtsync.c` instead of `servo_emu.c` (its main sync pin becomes an input), and one extra wire from VirtualTap's `V_HS` pad (J1 pin 8) to the emulator's PB2 / Virtual Boy servo connector pin 6. Everything else is unchanged. Details, calibration for another unit and the simulation bench are in `logic/README.md`.
