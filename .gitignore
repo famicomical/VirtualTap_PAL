@@ -1,0 +1,32 @@
+testsuite/
+__pycache__/
+
+# Quartus build outputs (regenerate with quartus_sh --flow compile VBTVout -c <revision>)
+logic/db/
+logic/incremental_db/
+logic/simulation/
+logic/*.rpt
+logic/*.smsg
+logic/*.summary
+logic/*.pin
+logic/*.jdi
+logic/*.jditmp
+logic/*.sld
+logic/*.done
+logic/*.qdf
+logic/VBTVout_*.pof
+
+# SVF files for OpenOCD, made from the .pof with quartus_cpf (see logic/README.md)
+logic/*.svf
+
+# Icarus Verilog outputs
+logic/sim/*.vvp
+logic/sim/*.log
+logic/sim/frame.pgm
+logic/sim/*.png
+
+# Local USB Blaster driver packages and bench media
+usbblaster/
+usbblaster-ii/
+*.MOV
+image0.jpeg
