@@ -2,7 +2,7 @@
 // Version 2-PAL "servo master", for Max V 5M240ZT100
 // (C) 2018 Sean "furrtek" Gonsalves
 // PAL "servo master" rework (C) 2026 Rony Ballouz, GPLv2 as the rest of VirtualTap
-// 50Hz / 314-line progressive RGB, derived from VT_ntsc2.v
+// 50Hz / 314-line progressive RGB, derived from VT_ntsc2.v of the upstream furrtek/VirtualTap
 //
 // Output raster: free-running, rigid. Every frame is exactly 314 lines of exactly 2562 clocks
 // (64.05us): 20.11ms = 49.72Hz. No line or frame is ever trimmed, so nothing in the sync stream
@@ -110,7 +110,7 @@ wire CS_FALL;
 wire [13:0] READ_ADDR;
 wire [1:0] PAL_RED, PAL_GREEN, PAL_BLUE;
 
-// Palette LUT (same as VT_vga2.v / VT_ntsc2.v)
+// Palette LUT (same as the upstream VGA/NTSC builds)
 always @(*)
 begin						 // 11    10    01    00
 	case(PALETTE)			 // RRGGBBRRGGBBRRGGBBRRGGBB
