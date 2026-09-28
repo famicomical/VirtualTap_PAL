@@ -11,8 +11,8 @@ A fork of [furrtek/VirtualTap](https://github.com/furrtek/VirtualTap) that repla
 
 * `doc`: Installation manuals.
 * `logic`: Verilog sources, pin assignments and bitstream file for the PAL (50 Hz) version.
-* `pcb`: Schematics, BOM and GERBER files.
-* `servo_emu`: AVR firmware and hookup guide for the servo emulator, plus the VirtualTap-synchronised variant that the PAL bitstream requires.
+* `pcb`: Schematics, BOM and GERBER files; `pcb/README.md` lists the `J1` pinout and what the PAL bitstream does with it.
+* `servo_emu`: AVR firmware and hookup guide for the servo emulator, plus the VirtualTap-synchronised variant that the PAL bitstream requires; `servo_emu/pcb/README.md` and `wiring_pal.png` show the extra wire.
 
 ## What it is
 A small mod board made to be plugged inside a Nintendo Virtualboy unit to make it output standard RGB video (PAL 50 Hz in this fork; VGA and NTSC upstream).
@@ -38,4 +38,4 @@ Porting the code to the Arduino Nano or other small AVR boards should be pretty 
 
 furrtek's VGA and NTSC bitstreams run their output free of the Virtual Boy's frame timing, so a frame is dropped or repeated now and then and the single-buffer mode can tear. The PAL bitstream (`logic/VT_PAL2.pof`, 50 Hz, 312-line progressive RGB with the standard 64.00 µs line) keeps its raster rigid too, but turns the relationship around: VirtualTap generates the mirror servo's 50 Hz main sync from its own crystal and nudges it until the Virtual Boy's column transfer lands inside the output's vertical blanking. The single framebuffer is then never read while it is written: no tear, no dropped or repeated frames, no jitter, and a constant 0.2 ms from the end of the transfer to the first displayed row.
 
-This requires the servo emulator in place of the Virtual Boy's mechanical servo board, running `servo_emu/firmware/servo_emu_vtsync.c` instead of `servo_emu.c` (its main sync pin becomes an input), and one extra wire from VirtualTap's `V_HS` pad (J1 pin 8) to the emulator's PB2 (physical pin 7 of the 8-pin ATtiny25/45/85) / Virtual Boy servo connector pin 6. Everything else is unchanged. Details, calibration for another unit and the simulation bench are in `logic/README.md`.
+This requires the servo emulator in place of the Virtual Boy's mechanical servo board, running `servo_emu/firmware/servo_emu_vtsync.c` instead of `servo_emu.c` (its main sync pin becomes an input), and one extra wire from VirtualTap's `V_HS` pad (J1 pin 8) to the emulator's PB2 (physical pin 7 of the 8-pin ATtiny25/45/85) / Virtual Boy servo connector pin 6 (`servo_emu/pcb/wiring_pal.png`). Everything else is unchanged. Details, calibration for another unit and the simulation bench are in `logic/README.md`.
