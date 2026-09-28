@@ -2,10 +2,10 @@
 # Icarus Verilog bench for the CPLD logic. (C) 2026 Rony Ballouz, GPLv2 as the rest of VirtualTap.
 # Usage: ./run.sh pal [DLY_ns] [NFRAMES] [CHECK_FROM] [JITNS]
 # pal: servo-master VT_pal2.v with tb_servo.v. DLY = servo sync rise -> VB burst start (default 1024000 ns, measured on hardware,
-#      with INIT_FALL_LINE 240 the burst ends on line 52 at once; 6019900 starts ~78 lines late,
-#      12424900 ~136 lines early; keep DLY below 14.8 ms, the VB model
+#      with INIT_FALL_LINE 240 the burst ends on line 53 at once; 6019900 starts ~78 lines late,
+#      12424900 ~136 lines early; keep DLY below 14.7 ms, the VB model
 #      triggers once per sync edge).
-#      Checks rigid raster (2562-clock lines, 314-line frames), every displayed pixel from CHECK_FROM
+#      Checks rigid raster (2560-clock lines, 312-line frames), every displayed pixel from CHECK_FROM
 #      on, no SRAM read during the burst, lock within 60 VB frames, servo sync timing.
 #      Prints "RESULT ...: N pixels checked, E errors". Writes frame.pgm (last frame). ~4 min per 60 frames.
 set -e

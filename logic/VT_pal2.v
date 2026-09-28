@@ -2,52 +2,58 @@
 // Version 2-PAL "servo master", for Max V 5M240ZT100
 // (C) 2018 Sean "furrtek" Gonsalves
 // PAL "servo master" rework (C) 2026 Rony Ballouz, GPLv2 as the rest of VirtualTap
-// 50Hz / 314-line progressive RGB, derived from VT_ntsc2.v of the upstream furrtek/VirtualTap
+// 50Hz / 312-line progressive RGB, derived from VT_ntsc2.v of the upstream furrtek/VirtualTap
 //
-// Output raster: free-running, rigid. Every frame is exactly 314 lines of exactly 2562 clocks
-// (64.05us): 20.11ms = 49.72Hz. No line or frame is ever trimmed, so nothing in the sync stream
-// changes from frame to frame (the user's ISL59885 + Sharp CZ-604D chain shows any timing kick,
-// even 25ns on one line; this raster was verified rigid on it as VT_pal2_freerun314.v).
+// Output raster: free-running, rigid. Every frame is exactly 312 lines of exactly 2560 clocks
+// (64.00us, PAL nominal): 19.968ms = 50.08Hz, the usual "288p" figures. No line or frame is ever
+// trimmed, so nothing in the sync stream changes from frame to frame (the user's ISL59885 + Sharp
+// CZ-604D chain shows any timing kick, even 25ns on one line). The 314 x 2562 raster of the first
+// release matched the Virtual Boy's own free-running frame period (49.72 Hz); that no longer
+// matters once the VB is slaved, so this build uses the standard line length.
 //
 // Tear-free single buffer without touching the raster: instead of locking the output to the
 // Virtual Boy, the Virtual Boy is locked to the output. The CPLD generates the mirror servo main
-// sync (10 ms high per 20.11 ms cycle, the shape of servo_emu/firmware/servo_emu.c) from the 40 MHz
-// crystal on a line counter SCOUNT that runs at the output frame rate; the servo emulator on the
-// VB (servo_emu_vtsync.c) restarts its cycle on every rising edge and produces the rest (eye A/B
-// feedback, frame duration bytes) from there, and the VIP starts its column transfer at a fixed
-// delay after those edges. The transfer burst (5.32 ms = 83 lines, measured) therefore sits at a
-// fixed place in the output frame, and a phase loop puts it in the vertical blanking: at every
-// VB_CS falling edge (burst end) the output line VCOUNT is compared with the target line 52; if
-// the burst ended late (lines 54..223) the next servo cycle is shortened, if early (224..313,
-// 0..50) it is lengthened, lines 51..53 do nothing. Steps are 8 lines while the burst end is
-// more than 8 lines off (lines 60..223 / 224..44) and 1 line inside; a request is applied at the
-// next servo wrap and shows on the burst after the next, so the loop decides only every other
-// burst. Power-up acquisition takes at most ~56 cycles (1.1 s), typically far less. The burst then covers lines 283..52, inside the blanking 280..55
-// (reads happen on lines 56..279 only), so the single framebuffer is never read while it is
-// written: no tear, no repeated or dropped frames, latency = time from the end of the burst to
-// the scan of each row. Steps only ever move the Virtual Boy; the output never moves.
+// sync (156 lines = 9.98 ms high per 19.97 ms cycle, the shape of servo_emu/firmware/servo_emu.c)
+// from the 40 MHz crystal on a line counter SCOUNT that runs at the output frame rate; the servo
+// emulator on the VB (servo_emu_vtsync.c) restarts its cycle on every rising edge and produces the
+// rest (eye A/B feedback, frame duration bytes) from there, and the VIP starts its column transfer
+// at a fixed delay after those edges. The transfer burst (5.32 ms = 83.1 lines, measured)
+// therefore sits at a fixed place in the output frame, and a phase loop puts it in the vertical
+// blanking: at every VB_CS falling edge (burst end) the output line VCOUNT is compared with the
+// target line 53; if the burst ended late (lines 55..208) the next servo cycle is shortened, if
+// early (209..311, 0..51) it is lengthened, lines 52..54 do nothing. Steps are 8 lines while the
+// burst end is more than 8 lines off (lines 61..208 / 209..45) and 1 line inside; a request is
+// applied at the next servo wrap and shows on the burst after the next, so the loop decides only
+// every other burst. Power-up acquisition takes at most ~56 cycles (1.1 s), typically far less.
+// In band the burst covers lines ~281..54, inside the blanking 280..55 (reads happen on lines
+// 56..279 only; 88 blanking lines for an 83-line burst, 1..2 lines of margin at each end), so the
+// single framebuffer is never read while it is written: no tear, no repeated or dropped frames,
+// latency = time from the end of the burst to the scan of each row (3 lines = 0.2 ms to the first
+// row). Steps only ever move the Virtual Boy; the output never moves.
 // The framebuffer is shown from power-up like in every other VirtualTap build (unwritten SRAM
 // noise until the first burst, a torn frame or two if the loop still has to move the burst).
 //
 // Wiring, as tested on hardware (2026-09-26): one wire plus the servo emulator.
 //   The ATtiny servo emulator (servo_emu/firmware/servo_emu_vtsync.c) stays on the VB's servo
-//   connector and keeps generating eye A/B and the frame duration bytes at 5 V; its PB2 becomes an
-//   input. SERVO_SYNC (CPLD pin 77 = J1 pin 8, the "V_HS" pad) goes straight to the emulator PB2 /
-//   VB pin 6 net: the VB and the ATtiny accept the 3.3 V level. The ATtiny restarts its cycle on
-//   every rising edge, the VB follows the ATtiny, and the loop below moves that edge. Should another
-//   VB not take 3.3 V on pin 6, a 5 V-powered non-inverting buffer (74HCT1G125) in the wire is the
-//   fix. Commit f24f895 also had the CPLD generate eye A/B and the frame duration bytes itself (for
-//   a setup without the emulator, never tested); dropped for LEs.
+//   connector and keeps generating eye A/B and the frame duration bytes at 5 V; its PB2 (pin 7)
+//   becomes an input. SERVO_SYNC (CPLD pin 77 = J1 pin 8, the "V_HS" pad) goes straight to the
+//   emulator PB2 / VB pin 6 net: the VB and the ATtiny accept the 3.3 V level. The ATtiny restarts
+//   its cycle on every rising edge, the VB follows the ATtiny, and the loop below moves that edge.
+//   Should another VB not take 3.3 V on pin 6, a 5 V-powered non-inverting buffer (74HCT1G125) in
+//   the wire is the fix. An earlier revision also had the CPLD generate eye A/B and the frame
+//   duration bytes itself (for a setup without the emulator, never tested); dropped for LEs.
 //
-// VB bus capture, SRAM addressing and the 8 palettes are those of VT_pal2_freerun314.v; the
+// VB bus capture, SRAM addressing and the 8 palettes are those of the upstream builds; the
 // 4-buffer mode is gone (single buffer, SRAM_ADDR[15:14] = 0), MODE unused.
 
-//`define CALIBRATE			// Calibration bitstream: loop frozen, picture always on, the output line on which the
-							// VB burst ends is painted on lines 64..79 as 9 bits, MSB left, bright = 1. Read it,
-							// put it in INIT_FALL_LINE below, rebuild without CALIBRATE.
-`define INIT_FALL_LINE 240	// Burst end line measured with CALIBRATE and SYNC_RISE_LINE = 141 on this setup. The
-							// servo sync is placed so the first burst after power-up already ends on line 52;
+//`define CALIBRATE			// Calibration bitstream: loop frozen, servo sync fixed on line 141 whatever INIT_FALL_LINE
+							// says, picture always on, the output line on which the VB burst ends is painted on lines
+							// 64..79 as 9 bits, MSB left, bright = 1. Read it, put it in INIT_FALL_LINE below, rebuild
+							// without CALIBRATE.
+`define INIT_FALL_LINE 240	// Burst end line measured with CALIBRATE (servo sync rising on line 141) on this setup. The
+							// servo sync is placed so the first burst after power-up already ends on line 53;
 							// another VB/emulator/board may differ, the loop then just takes a few more frames.
+							// 240 is the value measured on the 314-line build; re-measure with the CALIBRATE build.
 
 module VT_PAL2 (
 		input CLK_40M,
@@ -66,10 +72,10 @@ module VT_PAL2 (
 		output SERVO_SYNC					// VB servo pin 6, main 50Hz sync (see header)
 );
 
-reg [11:0] HCOUNT;		// Sync gen, 0..2561
-reg [8:0] VCOUNT;		// Sync gen, 0..313
+reg [11:0] HCOUNT;		// Sync gen, 0..2559
+reg [8:0] VCOUNT;		// Sync gen, 0..311
 reg [1:0] PIXEL_OUT;
-reg [3:0] VB_CS_SR;		// Shift registers for edge detection (as VT_pal2_freerun314.v)
+reg [3:0] VB_CS_SR;		// Shift registers for edge detection (as the upstream builds)
 reg [3:0] VB_SHIFT_SR;
 reg WRITE_FLAG;
 reg [13:0] WRITE_ADDR;
@@ -79,7 +85,7 @@ reg [4:0] READ_OFFSET;	// 0~27
 reg [13:0] READ_COUNTER;
 reg ACTIVE, SCAN;		// Registered H windows, see below
 reg [2:0] HSTRETCH;
-reg [8:0] SCOUNT;		// Servo cycle line counter, 0..313, phase-stepped by the loop
+reg [8:0] SCOUNT;		// Servo cycle line counter, 0..311, phase-stepped by the loop
 reg SV_SYNC;
 reg REQ_SKIP;			// Loop: shorten the next servo cycle (burst ended late)
 reg REQ_HOLD;			// Loop: lengthen the next servo cycle (burst ended early)
@@ -87,7 +93,7 @@ reg COARSE;				// Loop: the pending step is 8 lines instead of 1 (burst end more
 reg [2:0] HOLDN;		// Loop: extra lines still to hold beyond the first
 reg SETTLE;				// A step was requested: ignore the next burst end, it predates the step
 reg CS_LATE, CS_EARLY, CS_FAR;	// Classification of VCOUNT, registered (updated every clock)
-reg LINE_END;			// HCOUNT == 2561, registered one clock early so the counters see a short path
+reg LINE_END;			// HCOUNT == 2559, registered one clock early so the counters see a short path
 reg [1:0] PAL_SW_SR;
 reg [2:0] PALETTE;
 reg [23:0] PAL_COLORS;
@@ -95,14 +101,19 @@ reg [23:0] PAL_COLORS;
 reg [8:0] CAL_LINE;		// VCOUNT at the last VB burst end
 `endif
 
-// Servo sync placement: rises on SYNC_RISE_LINE, falls 156 lines (10 ms) later. With the sync on
-// line 141 the burst ended on INIT_FALL_LINE; move the sync so it ends on 52 from the first frame.
+// Servo sync placement: rises on SYNC_RISE_LINE, falls 156 lines (9.98 ms) later. With the sync on
+// line 141 the burst ended on INIT_FALL_LINE; move the sync so it ends on 53 from the first frame.
+// The CALIBRATE build keeps the sync on 141 so the readout can be copied into INIT_FALL_LINE as is.
 // The decodes act one line early (outputs change on the next line), hence the *_M1 values.
-localparam INIT_OFF = (`INIT_FALL_LINE >= 52) ? (`INIT_FALL_LINE - 52) : (`INIT_FALL_LINE + 314 - 52);
-localparam SYNC_RISE_LINE = (141 >= INIT_OFF) ? (141 - INIT_OFF) : (141 + 314 - INIT_OFF);
-localparam SYNC_FALL_LINE = (SYNC_RISE_LINE + 156 < 314) ? (SYNC_RISE_LINE + 156) : (SYNC_RISE_LINE + 156 - 314);
-localparam SYNC_RISE_M1 = (SYNC_RISE_LINE == 0) ? 313 : (SYNC_RISE_LINE - 1);
-localparam SYNC_FALL_M1 = (SYNC_FALL_LINE == 0) ? 313 : (SYNC_FALL_LINE - 1);
+`ifdef CALIBRATE
+localparam INIT_OFF = 0;
+`else
+localparam INIT_OFF = (`INIT_FALL_LINE >= 53) ? (`INIT_FALL_LINE - 53) : (`INIT_FALL_LINE + 312 - 53);
+`endif
+localparam SYNC_RISE_LINE = (141 >= INIT_OFF) ? (141 - INIT_OFF) : (141 + 312 - INIT_OFF);
+localparam SYNC_FALL_LINE = (SYNC_RISE_LINE + 156 < 312) ? (SYNC_RISE_LINE + 156) : (SYNC_RISE_LINE + 156 - 312);
+localparam SYNC_RISE_M1 = (SYNC_RISE_LINE == 0) ? 311 : (SYNC_RISE_LINE - 1);
+localparam SYNC_FALL_M1 = (SYNC_FALL_LINE == 0) ? 311 : (SYNC_FALL_LINE - 1);
 
 wire ACTIVE_V;
 wire SYNC_H, SYNC_V;
@@ -183,9 +194,8 @@ assign SRAM_ADDR = {2'b00, (HSTRETCH != 0) ? READ_ADDR : WRITE_ADDR};
 
 // VB burst end: falling edge of VB_CS, two low samples after two high ones (50ns filter)
 assign CS_FALL = (VB_CS_SR == 4'b1100);
-// Where it ended (CS_* registered below): target line 52, dead band 51..53, the rest split so
-// the shorter way is taken. More than 8 lines off: 8-line steps. Outside 49..55 the frame in
-// memory may be torn: blank.
+// Where it ended (CS_* registered below): target line 53, dead band 52..54, the rest split so
+// the shorter way is taken. More than 8 lines off: 8-line steps.
 
 // Servo output
 assign SERVO_SYNC = SV_SYNC;		// Straight 3.3 V wire to the emulator PB2 / VB pin 6 net
@@ -228,10 +238,10 @@ begin
 	VB_SHIFT_SR = {VB_SHIFT_SR[2:0], VB_SHIFT};
 
 	// Line position flags for the next clock
-	LINE_END <= (HCOUNT == 2560);
-	CS_LATE <= (VCOUNT >= 54) && (VCOUNT < 224);
-	CS_EARLY <= (VCOUNT >= 224) || (VCOUNT <= 50);
-	CS_FAR <= (VCOUNT >= 60) || (VCOUNT <= 44);
+	LINE_END <= (HCOUNT == 2558);
+	CS_LATE <= (VCOUNT >= 55) && (VCOUNT < 209);
+	CS_EARLY <= (VCOUNT >= 209) || (VCOUNT <= 51);
+	CS_FAR <= (VCOUNT >= 61) || (VCOUNT <= 45);
 
 	// Detect VB_SHIFT rising edge
 	if (VB_CS && (VB_SHIFT_SR == 4'b0011) && (!WRITE_FLAG))
@@ -277,7 +287,7 @@ begin
 
 	// PAL sync
 	// 1clk = 1/40M = 25ns
-	// 1 line = 64.05us = 2562clk (PAL nominal is 64.00us)
+	// 1 line = 64.00us = 2560clk (PAL nominal)
 	if (!LINE_END)	// Whole line
 	begin
 		// In active frame, next column
@@ -313,7 +323,7 @@ begin
 			PAIR_INDEX <= PAIR_INDEX + 1'b1;
 		end
 
-		if (VCOUNT == 313)		// Whole frame, always 314 lines
+		if (VCOUNT == 311)		// Whole frame, always 312 lines
 		begin
 			VCOUNT <= 0;
 			READ_OFFSET <= 0;
@@ -328,12 +338,12 @@ begin
 		else
 			VCOUNT <= VCOUNT + 1'b1;
 
-		// Servo cycle: 314 lines, minus 1 or 8 (skip) or plus 1 or 8 (hold) when the loop asks
-		if (SCOUNT == 313)
+		// Servo cycle: 312 lines, minus 1 or 8 (skip) or plus 1 or 8 (hold) when the loop asks
+		if (SCOUNT == 311)
 		begin
 			if (REQ_HOLD)
 			begin
-				// Stay on line 313 for HOLDN + 1 lines
+				// Stay on line 311 for HOLDN + 1 lines
 				if (HOLDN == 0)
 					REQ_HOLD <= 1'b0;
 				else
@@ -348,7 +358,7 @@ begin
 		else
 			SCOUNT <= SCOUNT + 1'b1;
 
-		// Servo main sync: high for 156 lines (10 ms) from SYNC_RISE_LINE, takes effect on the next line
+		// Servo main sync: high for 156 lines (9.98 ms) from SYNC_RISE_LINE, takes effect on the next line
 		if (SCOUNT == SYNC_RISE_M1) SV_SYNC <= 1'b1;
 		if (SCOUNT == SYNC_FALL_M1) SV_SYNC <= 1'b0;
 	end

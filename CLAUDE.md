@@ -56,7 +56,7 @@ Understanding this requires reading the Verilog together with the README and the
 
 **Buffering**: the PAL build uses a single framebuffer and never reads it during the VB transfer burst (the burst is phase-locked into vblank, see below), so there is no tearing and no buffer switching; `MODE` is unused. The upstream VGA/NTSC builds used the top two address bits for four 16K buffers switched by `MODE`. `MODE` and `PAL_SW` need pull-ups (enabled in the `.qsf`).
 
-**Output scan / rotation**: the VB frame is stored by column, so the output reads "rotated": `READ_COUNTER` steps by 28 per output pixel (next column), `READ_OFFSET` selects the 8-pixel word within the column, and `PAIR_INDEX` selects the 2-bit pixel inside that word. The output stretches 5× horizontally with no vertical doubling (1920×224 inside a 314-line 50 Hz frame, composite sync on `V_VS`).
+**Output scan / rotation**: the VB frame is stored by column, so the output reads "rotated": `READ_COUNTER` steps by 28 per output pixel (next column), `READ_OFFSET` selects the 8-pixel word within the column, and `PAIR_INDEX` selects the 2-bit pixel inside that word. The output stretches 5× horizontally with no vertical doubling (1920×224 inside a 312-line, 2560-clock 50.08 Hz frame, composite sync on `V_VS`).
 
 **Palette**: 8 palettes in a `case` LUT, each a 24-bit constant = 4 colors × (R,G,B) × 2 bits, brightest first. `PAL_SW` falling edge (sampled once per frame) cycles `PALETTE`. Output is 2 bits per channel through R-2R DACs into a THS7373 amp, so only the 64 colors in `logic/colors.png` are reachable. `logic/README.md` documents how to edit palettes.
 

@@ -2,22 +2,23 @@
 // (C) 2026 Rony Ballouz, GPLv2 as the rest of VirtualTap
 // Bench for the servo-master VT_pal2.v: SRAM model, a Virtual Boy model whose transfer burst
 // starts DLY ns after the servo main sync rises,
-// pixel-exact output check, rigid raster check (every line LINE clocks, every frame 314 lines),
+// pixel-exact output check, rigid raster check (every line LINE clocks, every frame NLINES lines),
 // no SRAM read while VB_CS is high (checked once the loop is in band), lock within MAXLOCK VB
 // frames, servo sync timing.
 module tb;
 parameter H0 = 540;			// first displayed HCOUNT
 parameter V0 = 56;			// first displayed VCOUNT
 parameter NCOL = 384;		// displayed columns (ACTIVE width / 5)
-parameter LINE = 2562;		// clocks per line
+parameter LINE = 2560;		// clocks per line
+parameter NLINES = 312;		// lines per frame
 parameter NFRAMES = 40;		// VB frames to send
 parameter DUMP = 0;			// write last checked frame as PGM
 parameter WORDNS = 245;		// VB_SHIFT low time per word, ns (word = 50 + 200 + WORDNS). 245 = 5.32ms burst (measured)
 parameter DLY = 1024000;	// main sync rising edge -> VB_CS rising edge, ns (measured: burst ends on line 240 with the sync on 141)
-parameter MAXLOCK = 60;		// VB frames within which the loop must be in band (157 lines = 20 coarse + 8 fine decisions, one per 2 frames)
+parameter MAXLOCK = 60;		// VB frames within which the loop must be in band (156 lines = 20 coarse + 8 fine decisions, one per 2 frames)
 parameter JITNS = 0;		// +-jitter added to DLY, alternating, ns
 parameter CHECK_FROM = 10;	// first output frame whose pixels are checked (lets the loop settle)
-parameter TARGET = 52;		// line on which the loop should park the VB_CS falling edge
+parameter TARGET = 53;		// line on which the loop should park the VB_CS falling edge
 
 reg CLK = 0; always #12.5 CLK = ~CLK;
 reg [15:0] VB_PIXELS = 0; reg VB_CS = 0, VB_SHIFT = 0;
@@ -101,7 +102,7 @@ always @(negedge CLK) begin
 			if (frames > 0)
 				$display("frame %0d: %0d lines, %0d active, shows VB frame %0d, start %0.1fus after VB_CS fall, first active line +%0.2fms",
 					frames, flines, act_lines, fexp, (fstart_t - cs_fall_t)/1000.0, (first_act_t - fstart_t)/1e6);
-			if (frames > 1 && flines != 314) begin $display("ERR frame length %0d lines", flines); errs = errs + 1; end
+			if (frames > 1 && flines != NLINES) begin $display("ERR frame length %0d lines", flines); errs = errs + 1; end
 			if (act_lines != 0 && frames > 1 && act_lines != 224) begin $display("ERR active lines %0d", act_lines); errs = errs + 1; end
 			frames = frames + 1; flines = 0; act_lines = 0; fstart_t = $realtime; first_act_seen = 0;
 			fexp = -1;

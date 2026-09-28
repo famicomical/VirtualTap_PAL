@@ -1,7 +1,8 @@
 // VIRTUALTAP Rev. C CPLD logic - VB bus timing probe (debug bitstream, not a video mode)
 // (C) 2026 Rony Ballouz, GPLv2 as the rest of VirtualTap (board and original logic by Sean "furrtek" Gonsalves)
-// For Max V 5M240ZT100. Free-running 314-line / 2562-clock PAL-timed raster, same sync
-// as VT_pal2.v, but the picture is a live view of the Virtual Boy bus instead of the framebuffer:
+// For Max V 5M240ZT100. Free-running 314-line / 2562-clock PAL-timed raster (the first PAL
+// release's; VT_pal2.v is now 312 x 2560), same sync shape, but the picture is a live view of the
+// Virtual Boy bus instead of the framebuffer:
 //
 //   red        = VB_CS sampled at 40 MHz, painted across every line. Band height = burst length,
 //                band edge x position = edge time within a line (25 ns per pixel). Frame-to-frame
